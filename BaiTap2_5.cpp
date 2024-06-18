@@ -1,209 +1,181 @@
-#include <iostream>
-#include <cstring>
-
+#include<bits/stdc++.h>
 using namespace std;
 
-struct Ngay {
-    int ngay;
-    int thang;
-    int nam;
-};
-
-struct SinhVien {
-    char maSV[8];
-    char hoTen[50];
-    int gioiTinh;
-    Ngay ngaySinh;
-    char diaChi[100];
-    char lop[12];
-    char khoa[7];
-};
-
 struct Node {
-    SinhVien data;
-    Node *link;
+    int sbd;
+    string hoTen;
+    Node *left;
+    Node *right;
+
+    Node(int s, string h, Node *l, Node *r) : sbd(s), hoTen(h), left(l), right(r) {}
 };
 
-struct List {
-    Node *first;
-    Node *last;
+class BSTree {
+private:
+    Node *root;
+
+    void makeEmpty(Node *&t) {
+        if (t == nullptr) return;
+        makeEmpty(t->left);
+        makeEmpty(t->right);
+        delete t;
+        t = nullptr;
+    }
+
+    void insert(int sbd, string hoTen, Node *&t) {
+        if (t == nullptr)
+            t = new Node(sbd, hoTen, nullptr, nullptr);
+        else if (sbd < t->sbd)
+            insert(sbd, hoTen, t->left);
+        else if (sbd > t->sbd)
+            insert(sbd, hoTen, t->right);
+    }
+
+    Node *search(int sbd, Node *t) {
+        if (t == nullptr) return nullptr;
+        if (sbd < t->sbd) return search(sbd, t->left);
+        else if (sbd > t->sbd) return search(sbd, t->right);
+        else return t;
+    }
+
+    void preorder(Node *t) {
+        if (t != nullptr) {
+            cout << t->sbd << " - " << t->hoTen << endl;
+            preorder(t->left);
+            preorder(t->right);
+        }
+    }
+
+    void inorder(Node *t) {
+        if (t != nullptr) {
+            inorder(t->left);
+            cout << t->sbd << " - " << t->hoTen << endl;
+            inorder(t->right);
+        }
+    }
+
+    void postorder(Node *t) {
+        if (t != nullptr) {
+            postorder(t->left);
+            postorder(t->right);
+            cout << t->sbd << " - " << t->hoTen << endl;
+        }
+    }
+
+    void treeToVector(Node *t, vector<Node*> &vec) {
+        if (t != nullptr) {
+            treeToVector(t->left, vec);
+            vec.push_back(t);
+            treeToVector(t->right, vec);
+        }
+    }
+
+    void heapify(vector<Node*> &vec, int n, int i) {
+        int largest = i;
+        int left = 2 * i + 1;
+        int right = 2 * i + 2;
+
+        if (left < n && vec[left]->sbd > vec[largest]->sbd)
+            largest = left;
+
+        if (right < n && vec[right]->sbd > vec[largest]->sbd)
+            largest = right;
+
+        if (largest != i) {
+            swap(vec[i], vec[largest]);
+            heapify(vec, n, largest);
+        }
+    }
+
+    void heapSort(vector<Node*> &vec) {
+        int n = vec.size();
+        for (int i = n / 2 - 1; i >= 0; i--)
+            heapify(vec, n, i);
+
+        for (int i = n - 1; i > 0; i--) {
+            swap(vec[0], vec[i]);
+            heapify(vec, i, 0);
+        }
+    }
+
+public:
+    BSTree() : root(nullptr) {}
+
+    ~BSTree() {
+        makeEmpty(root);
+    }
+
+    bool isEmpty() {
+        return root == nullptr;
+    }
+
+    void makeEmpty() {
+        makeEmpty(root);
+    }
+
+    void insert(int sbd, string hoTen) {
+        insert(sbd, hoTen, root);
+    }
+
+    Node *search(int sbd) {
+        return search(sbd, root);
+    }
+
+    void preorder() {
+        preorder(root);
+    }
+
+    void inorder() {
+        inorder(root);
+    }
+
+    void postorder() {
+        postorder(root);
+    }
+
+    void sortStudents() {
+        vector<Node*> vec;
+        treeToVector(root, vec);
+        heapSort(vec);
+        for (Node* n : vec) {
+            cout << n->sbd << " - " << n->hoTen << endl;
+        }
+    }
 };
 
-// Hàm khởi tạo danh sách
-void KhoiTaoDS(List *L) {
-    L->first = NULL;
-    L->last = NULL;
-}
+int main() {
+    BSTree bst;
+    bst.insert(5, "Tuan");
+    bst.insert(6, "Lan");
+    bst.insert(3, "Cong");
+    bst.insert(8, "Huong");
+    bst.insert(7, "Binh");
+    bst.insert(4, "Hai");
+    bst.insert(2, "Son");
 
-// Hàm kiểm tra danh sách rỗng
-bool DanhSachRong(List L) {
-    return L.first == NULL;
-}
+    Node *n1 = bst.search(4);
+    Node *n2 = bst.search(9);
 
-// Hàm nhập sinh viên
-void NhapSV(List *L) {
-    SinhVien sv;
-    Node *p;
+    if (n1 != nullptr)
+        cout << "Sinh vien voi SBD=4 la " << n1->hoTen << endl;
+    if (n2 == nullptr)
+        cout << "Khong tim thay sinh vien voi SBD=9" << endl;
 
-    cout << "Nhap ma sinh vien: ";
-    cin >> sv.maSV;
+    cout << "Duyet cay theo thu tu truoc:" << endl;
+    bst.preorder();
 
-    cout << "Nhap ho ten: ";
-    cin.ignore(); // Xóa bộ nhớ đệm đầu vào
-    cin.getline(sv.hoTen, 50);
+    cout << "Duyet cay theo thu tu giua:" << endl;
+    bst.inorder();
 
-    cout << "Nhap gioi tinh: ";
-    cin >> sv.gioiTinh;
+    cout << "Duyet cay theo thu tu sau:" << endl;
+    bst.postorder();
 
-    cout << "Nhap ngay sinh: ";
-    cin >> sv.ngaySinh.ngay >> sv.ngaySinh.thang >> sv.ngaySinh.nam;
+    cout << "Danh sach sinh vien sau khi sap xep:" << endl;
+    bst.sortStudents();
 
-    cout << "Nhap dia chi: ";
-    cin.ignore(); // Xóa bộ nhớ đệm đầu vào
-    cin.getline(sv.diaChi, 100);
+    bst.makeEmpty();
+    if (bst.isEmpty())
+        cout << "Cay da bi xoa rong" << endl;
 
-    cout << "Nhap lop: ";
-    cin.ignore(); // Xóa bộ nhớ đệm đầu vào
-    cin.getline(sv.lop, 12);
-
-    cout << "Nhap khoa: ";
-    cin.ignore(); // Xóa bộ nhớ đệm đầu vào
-    cin.getline(sv.khoa, 7);
-
-    p = new Node;
-    p->data = sv;
-    p->link = NULL;
-
-    if (DanhSachRong(*L)) {
-        L->first = p;
-        L->last = p;
-    } else {
-        p->link = L->first;
-        L->first = p;
-    }
-}
-
-// Hàm duyệt và in danh sách
-void InDS(List L) {
-    Node *p;
-
-    if (DanhSachRong(L)) {
-        cout << "Danh sach rong!\n";
-        return;
-    }
-
-    p = L.first;
-    while (p != NULL) {
-        cout << "Ma sinh vien: " << p->data.maSV << endl;
-        cout << "Ho ten: " << p->data.hoTen << endl;
-        cout << "Gioi tinh: " << p->data.gioiTinh << endl;
-        cout << "Ngay sinh: " << p->data.ngaySinh.ngay << "/"<< p->data.ngaySinh.thang << "/" << p->data.ngaySinh.nam << endl;
-        cout << "Dia chi: " << p->data.diaChi << endl;
-        cout << "Lop: " << p->data.lop << endl;
-        cout << "Khoa: " << p->data.khoa << endl;
-        cout << "---------------------\n";
-        p = p->link;
-    }
-}
-
-// Hàm tìm kiếm sinh viên theo mã
-Node *TimSVTheoMa(List L, char maSV[]) {
-    Node *p;
-
-    if (DanhSachRong(L)) {
-        return NULL;
-    }
-
-    p = L.first;
-    while (p != NULL && strcmp(p->data.maSV, maSV) != 0) {
-        p = p->link;
-    }
-
-    return p;
-}
-
-void ThemSV(List *L) {
-    SinhVien sv;
-    Node *p, *q;
-
-    NhapSV(&sv);
-
-    p = new Node;
-    p->data = sv;
-
-    if (DanhSachRong(*L)) {
-        L->first = p;
-        L->last = p;
-    } else {
-        cout << "Nhap vi tri chen (bat dau tu 1): ";
-        int viTri;
-        cin >> viTri;
-
-        if (viTri < 1) {
-            cout << "Vi tri chen khong hop le!\n";
-            return;
-        }
-
-        q = NULL;
-        for (int i = 1; i < viTri; i++) {
-            if (q == NULL) {
-                q = L->first;
-            } else {
-                q = q->link;
-            }
-        }
-
-        if (q == NULL) { // Them vao cuoi danh sach
-            p->link = NULL;
-            L->last->link = p;
-            L->last = p;
-        } else {
-            p->link = q->link;
-            q->link = p;
-        }
-    }
-}
-
-void SapXepDS(List *L, char criterion[]) {
-    if (DanhSachRong(*L) || L->first->link == NULL) {
-        return;
-    }
-
-    for (Node *p = L->first; p->link != NULL; p = p->link) {
-        for (Node *q = p->link; q != NULL; q = q->link) {
-            if (strcmp(criterion, "ten") == 0) {
-                if (strcmp(p->data.hoTen, q->data.hoTen) > 0) {
-                    SinhVien temp = p->data;
-                    p->data = q->data;
-                    q->data = temp;
-                }
-            } else if (strcmp(criterion, "ngaysinh") == 0) {
-                if (p->data.ngaySinh.nam > q->data.ngaySinh.nam ||
-                    (p->data.ngaySinh.nam == q->data.ngaySinh.nam &&
-                     p->data.ngaySinh.thang > q->data.ngaySinh.thang) ||
-                    (p->data.ngaySinh.nam == q->data.ngaySinh.nam &&
-                     p->data.ngaySinh.thang == q->data.ngaySinh.thang &&
-                     p->data.ngaySinh.ngay > q->data.ngaySinh.ngay)) {
-                    SinhVien temp = p->data;
-                    p->data = q->data;
-                    q->data = temp;
-                }
-            }
-        }
-    }
-}
-int main(){
-    List L;
-char maSV[8];
-Node *p;
-
-// Nhap du lieu cho danh sach
-NhapSV(&L);
-NhapSV(&L);
-
-// Sap xep danh sach
-SapXepMSV(&L);
-
-// In danh sach
-InDS(L);
+    return 0;
 }
